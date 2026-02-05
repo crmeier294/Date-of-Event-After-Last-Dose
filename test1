@@ -1,0 +1,161 @@
+SELECT DISTINCT
+  a.Site as `Site`, 
+  a.Participant as `Participant`,
+--  a.EventGroup as `Event Group`,
+--  a.EventName as `Event Name`,
+  a.Cycle as `Event Cycle`,
+  a.EventDate as `Event Date`,
+  b.FormNm as `EC form Name`,
+  b.ECRow as `EC Reference Number`,
+  b.EC_TPT as `EC Time Point`,
+  b.ECMaxStopDate as `EC Last Dose Date`,
+  b.EC_Last_Dose as `EC Last Dose`,
+  CASE
+    WHEN b.FormNm = 'EC01' THEN CASE WHEN m.ADDMED_O_EC1  = 1 THEN 'Y' ELSE 'N' END
+    WHEN b.FormNm = 'EC04' THEN CASE WHEN m.ADDMED_O_EC4  = 1 THEN 'Y' ELSE 'N' END
+    WHEN b.FormNm = 'EC05' THEN CASE WHEN m.ADDMED_O_EC5  = 1 THEN 'Y' ELSE 'N' END
+    WHEN b.FormNm = 'EC06' THEN CASE WHEN m.ADDMED_O_EC6  = 1 THEN 'Y' ELSE 'N' END
+    WHEN b.FormNm = 'EC07' THEN CASE WHEN m.ADDMED_O_EC7  = 1 THEN 'Y' ELSE 'N' END
+    WHEN b.FormNm = 'EC08' THEN CASE WHEN m.ADDMED_O_EC8  = 1 THEN 'Y' ELSE 'N' END
+    WHEN b.FormNm = 'EC09' THEN CASE WHEN m.ADDMED_O_EC9  = 1 THEN 'Y' ELSE 'N' END
+    WHEN b.FormNm = 'EC10' THEN CASE WHEN m.ADDMED_O_EC10 = 1 THEN 'Y' ELSE 'N' END
+    WHEN b.FormNm = 'EC11' THEN CASE WHEN m.ADDMED_O_EC11 = 1 THEN 'Y' ELSE 'N' END
+    ELSE 'N'
+  END as `ADDMED Selected for EC Form`,
+
+  /* Added: Stable unique row identifier to support predictable review tracking */
+  CONCAT(
+    a.SubjID, '|',
+    a.EventGroup, '|',
+    a.EventName, '|',
+    a.Cycle, '|',
+    CAST(a.EventDate AS DATE), '|',
+    b.FormNm, '|',
+    b.ECRow
+  ) as `Row Key`
+
+FROM 
+(
+  SELECT
+    @HDR.Study.Name,
+    @HDR.Site.Number as Site,
+    @HDR.Subject.Name as Participant,
+    @HDR.Subject.Status,
+    @HDR.Subject.ID as SubjID,
+    @HDR.EventGroup.Name as EventGroup,
+    @HDR.Event.Name as EventName,
+    @HDR.Event.Date as EventDate,
+    @HDR.Event.Status,
+    @HDR.Event.VisitMethod,
+    @HDR.EventGroup.RepeatLabel as LABEL,
+    @HDR.Event.Label,
+    CASE
+      WHEN INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle') > 0
+       AND (
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (1)')  > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (2)')  > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (3)')  > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (4)')  > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (5)')  > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (6)')  > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (7)')  > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (8)')  > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (9)')  > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (10)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (11)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (12)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (13)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (14)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (15)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (16)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (17)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (18)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (19)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (20)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (21)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (22)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (23)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (24)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (25)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (26)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (27)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (28)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (29)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (30)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (31)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (32)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (33)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (34)') > 0 OR
+            INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle (35)') > 0
+       )
+      THEN UPPER(TRIM(REPLACE(REPLACE(
+           SUBSTR(
+             @HDR.EventGroup.RepeatLabel,
+             INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle'),
+             INSTR(@HDR.EventGroup.RepeatLabel, ')') - INSTR(@HDR.EventGroup.RepeatLabel, 'Cycle') + 1
+           ),
+           '(',''), ')',''
+      )))
+      ELSE NULL
+    END AS Cycle
+) a
+
+LEFT JOIN
+(
+  SELECT
+    d.SiteNum as Site,
+    d.SubjName as Participant,
+    d.SubjID,
+    d.FrmNm as FormNm,
+    d.ECRow,
+    d.EC_TPT,
+    mx.ECMaxStopDate,
+    d.EC_ECLDINDC as EC_Last_Dose
+  FROM vwECDose d
+  INNER JOIN
+  (
+    SELECT
+      SubjID,
+      MAX(EC_ECENDTTM) as ECMaxStopDate
+    FROM vwECDose
+    WHERE FrmNm IN ('EC01','EC04','EC05','EC06','EC07','EC08','EC09','EC10','EC11')
+      AND EC_ECLDINDC = true
+      AND EC_ECENDTTM IS NOT NULL
+    GROUP BY SubjID
+  ) mx
+    ON d.SubjID = mx.SubjID
+   AND d.EC_ECENDTTM = mx.ECMaxStopDate
+  WHERE d.FrmNm IN ('EC01','EC04','EC05','EC06','EC07','EC08','EC09','EC10','EC11')
+    AND d.EC_ECLDINDC = true
+) b
+  ON a.SubjID = b.SubjID
+
+LEFT JOIN
+(
+  SELECT
+    @HDR.Subject.ID as SubjID,
+    MAX(CASE WHEN ADDMED_O_EC1  = true THEN 1 ELSE 0 END) as ADDMED_O_EC1,
+    MAX(CASE WHEN ADDMED_O_EC2  = true THEN 1 ELSE 0 END) as ADDMED_O_EC2,
+    MAX(CASE WHEN ADDMED_O_EC3  = true THEN 1 ELSE 0 END) as ADDMED_O_EC3,
+    MAX(CASE WHEN ADDMED_O_EC4  = true THEN 1 ELSE 0 END) as ADDMED_O_EC4,
+    MAX(CASE WHEN ADDMED_O_EC5  = true THEN 1 ELSE 0 END) as ADDMED_O_EC5,
+    MAX(CASE WHEN ADDMED_O_EC6  = true THEN 1 ELSE 0 END) as ADDMED_O_EC6,
+    MAX(CASE WHEN ADDMED_O_EC7  = true THEN 1 ELSE 0 END) as ADDMED_O_EC7,
+    MAX(CASE WHEN ADDMED_O_EC8  = true THEN 1 ELSE 0 END) as ADDMED_O_EC8,
+    MAX(CASE WHEN ADDMED_O_EC9  = true THEN 1 ELSE 0 END) as ADDMED_O_EC9,
+    MAX(CASE WHEN ADDMED_O_EC10 = true THEN 1 ELSE 0 END) as ADDMED_O_EC10,
+    MAX(CASE WHEN ADDMED_O_EC11 = true THEN 1 ELSE 0 END) as ADDMED_O_EC11
+  FROM ADDMED
+  WHERE @Form.Status = 'submitted__v'
+  GROUP BY @HDR.Subject.ID
+) m
+  ON a.SubjID = m.SubjID
+
+WHERE
+  a.EventDate IS NOT NULL
+  AND a.Cycle IS NOT NULL
+  AND b.FormNm IS NOT NULL
+  AND b.EC_Last_Dose = true
+  AND a.EventDate > b.ECMaxStopDate
+
+ORDER BY a.Site, a.Participant
